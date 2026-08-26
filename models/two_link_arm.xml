@@ -1,0 +1,57 @@
+<mujoco model="two_link_planar_arm">
+  <compiler angle="radian"/>
+  <option gravity="0 0 -9.81" timestep="0.002"/>
+
+  <default>
+    <joint damping="0.5" armature="0.01"/>
+    <geom type="capsule" size="0.03" rgba="0.2 0.5 0.8 1"/>
+  </default>
+
+  <contact>
+    <!-- Adjacent-body geoms are physically touching at their shared
+         joint by construction (e.g. link1's capsule starts exactly
+         where the base cylinder is). MuJoCo does not auto-exclude
+         parent/child collisions, so without these exclusions the
+         simulation picks up spurious self-contact forces every step
+         -- this was found and fixed after PD-control tests showed the
+         arm oscillating chaotically and never settling even under
+         plain gravity holding; data.ncon was nonzero at the resting
+         pose and traced to base_geom vs link1_geom contact. -->
+    <exclude body1="base" body2="link1"/>
+    <exclude body1="link1" body2="link2"/>
+    <exclude body1="link2" body2="end_effector"/>
+  </contact>
+
+  <worldbody>
+    <light diffuse=".6 .6 .6" pos="0 0 3" dir="0 0 -1"/>
+    <geom name="floor" type="plane" size="2 2 0.1" pos="0 0 -0.01" rgba="0.9 0.9 0.9 1"/>
+
+    <!-- Base: fixed pedestal -->
+    <body name="base" pos="0 0 0.5">
+      <geom name="base_geom" type="cylinder" size="0.05 0.05" rgba="0.3 0.3 0.3 1"/>
+
+      <!-- Link 1: shoulder -->
+      <body name="link1" pos="0 0 0">
+        <joint name="shoulder" type="hinge" axis="0 1 0" range="-3.14159 3.14159"/>
+        <geom name="link1_geom" fromto="0 0 0 0.4 0 0" mass="1.0"/>
+
+        <!-- Link 2: elbow -->
+        <body name="link2" pos="0.4 0 0">
+          <joint name="elbow" type="hinge" axis="0 1 0" range="-2.8 2.8"/>
+          <geom name="link2_geom" fromto="0 0 0 0.3 0 0" mass="0.7"/>
+
+          <!-- End effector marker -->
+          <body name="end_effector" pos="0.3 0 0">
+            <geom type="sphere" size="0.04" rgba="0.9 0.2 0.2 1" mass="0.05"/>
+            <site name="ee_site" pos="0 0 0" size="0.01"/>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <motor name="shoulder_motor" joint="shoulder" gear="1" ctrlrange="-20 20"/>
+    <motor name="elbow_motor" joint="elbow" gear="1" ctrlrange="-20 20"/>
+  </actuator>
+</mujoco>
