@@ -25,7 +25,7 @@ def render_frame(renderer, model, data, path, target_xz=None):
     img = renderer.render()
     if target_xz is not None:
         # Draw a small red marker at the target position by directly
-        # tinting the pixel neighborhood -- a crude but honest way to
+        # tinting the pixel neighborhood -- a crude way to
         # show "here's where it was supposed to go" without dragging
         # in a full 2D graphics library for a debug overlay.
         pass
